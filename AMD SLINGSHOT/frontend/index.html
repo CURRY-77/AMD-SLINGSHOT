@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Kalpana - AI Cyber Guardian</title>
+    
+    <!-- Fonts: Inter for UI, JetBrains Mono for Code/Terminals -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Chart.js for Packet Monitor -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="theme-light">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <h2>Kalpana</h2>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="#dashboard" class="nav-item active" data-view="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Dashboard
+            </a>
+            
+            <div class="nav-section">Analyzers</div>
+            <a href="#url-scanner" class="nav-item" data-view="url-scanner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                URL Scanner
+            </a>
+            <a href="#email-scanner" class="nav-item" data-view="email-scanner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Email Scanner
+            </a>
+            <a href="#file-analyzer" class="nav-item" data-view="file-analyzer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                File Analyzer
+            </a>
+
+            <div class="nav-section">Monitoring</div>
+            <a href="#network-map" class="nav-item" data-view="network-map">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                Network Map
+            </a>
+            <a href="#packet-monitor" class="nav-item" data-view="packet-monitor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Packet Monitor
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button id="theme-toggle" class="icon-button" title="Toggle Theme">
+                <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+                <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+            <div class="status-indicator online">System Online</div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="view active">
+            <header class="view-header">
+                <div>
+                    <h1>Security Dashboard</h1>
+                    <p class="subtitle">System overview and recent activity</p>
+                </div>
+            </header>
+            
+            <div class="dashboard-grid">
+                <!-- Stats Cards -->
+                <div class="stat-card">
+                    <div class="stat-icon url-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                    <div class="stat-info">
+                        <h3>URLs Scanned</h3>
+                        <div class="stat-value" id="dashboard-url-count">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon email-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+                    <div class="stat-info">
+                        <h3>Emails Checked</h3>
+                        <div class="stat-value" id="dashboard-email-count">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div>
+                    <div class="stat-info">
+                        <h3>Files Analyzed</h3>
+                        <div class="stat-value" id="dashboard-file-count">0</div>
+                    </div>
+                </div>
+                <div class="stat-card alert">
+                    <div class="stat-icon alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                    <div class="stat-info">
+                        <h3>Threats Found</h3>
+                        <div class="stat-value" id="dashboard-threat-count">0</div>
+                    </div>
+                </div>
+
+                <!-- Recent History Table -->
+                <div class="panel history-panel col-span-full">
+                    <div class="panel-header">
+                        <h2>Recent Scans</h2>
+                        <button class="btn btn-secondary btn-sm" onclick="app.loadDashboardStats()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Type</th>
+                                    <th>Target</th>
+                                    <th>Risk Level</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dashboard-history-list">
+                                <tr><td colspan="5" class="text-center text-muted">Loading history...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- URL Scanner View -->
+        <section id="view-url-scanner" class="view">
+            <header class="view-header">
+                <div>
+                    <h1>URL Scanner</h1>
+                    <p class="subtitle">Analyze links for phishing, malware, and reputation</p>
+                </div>
+            </header>
+            
+            <div class="panel upload-panel">
+                <form id="form-url-scan" class="input-group">
+                    <input type="url" id="input-url" placeholder="https://example.com" required class="input-lg">
+                    <button type="submit" class="btn btn-primary btn-lg" id="btn-scan-url">Scan URL</button>
+                </form>
+            </div>
+
+            <!-- Global Scanner Loading State -->
+            <div id="scanner-loading" class="scan-loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzing targeting, applying heuristic models...</p>
+            </div>
+
+            <!-- Global Scan Results Area -->
+            <div id="scan-results-container"></div>
+        </section>
+
+        <!-- Email Scanner View -->
+        <section id="view-email-scanner" class="view">
+            <header class="view-header">
+                <div>
+                    <h1>Email Scanner</h1>
+                    <p class="subtitle">Analyze email content and headers for scams/phishing</p>
+                </div>
+            </header>
+            
+            <div class="panel">
+                <form id="form-email-scan" class="form-stack">
+                    <div class="form-group">
+                        <label>Sender Address (Optional)</label>
+                        <input type="email" id="input-email-sender" placeholder="support@paypal-security-update.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Subject (Optional)</label>
+                        <input type="text" id="input-email-subject" placeholder="URGENT: Your account has been suspended">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Body / Content</label>
+                        <textarea id="input-email-body" rows="6" placeholder="Paste the suspicious email contents here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="btn-scan-email">Analyze Email</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- File Analyzer View -->
+        <section id="view-file-analyzer" class="view">
+            <header class="view-header">
+                <div>
+                    <h1>File Analyzer</h1>
+                    <p class="subtitle">Extract metadata, hashes, and match against VirusTotal</p>
+                </div>
+            </header>
+            
+            <div class="panel upload-panel file-dropzone" id="file-dropzone">
+                <div class="dropzone-content">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <h3>Drag & Drop file here</h3>
+                    <p class="text-muted">or click to select file</p>
+                    <input type="file" id="input-file" class="file-input-hidden">
+                    <button class="btn btn-secondary mt-4" onclick="document.getElementById('input-file').click()">Select File</button>
+                </div>
+                <!-- Selection display -->
+                <div id="file-selection-display" class="hidden pb-4">
+                    <div class="file-info-badge">
+                        <span id="selected-filename">filename.exe</span>
+                        <button class="icon-button btn-close" onclick="app.clearFileSelection()">×</button>
+                    </div>
+                    <button class="btn btn-primary mt-4" id="btn-scan-file">Analyze File</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Network Map View -->
+        <section id="view-network-map" class="view">
+            <header class="view-header">
+                <div>
+                    <h1>Network Map & Port Scan</h1>
+                    <p class="subtitle">Discover local devices and open TCP ports</p>
+                </div>
+                <button class="btn btn-primary" id="btn-scan-network">Run Full Scan</button>
+            </header>
+            
+            <!-- Network Loading -->
+            <div id="network-loading" class="scan-loading hidden">
+                <div class="spinner"></div>
+                <p>Scanning subnet ARP tables and open ports (This may take 10-30s)...</p>
+            </div>
+
+            <div id="network-results-container">
+                <!-- Fallback empty state -->
+                <div class="panel empty-state">
+                    <p class="text-muted">Click "Run Full Scan" to discover devices on your local network.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Packet Monitor View -->
+        <section id="view-packet-monitor" class="view">
+            <header class="view-header">
+                <div>
+                    <h1>Live Packet Monitor</h1>
+                    <p class="subtitle">Real-time bandwidth usage and traffic anomalies</p>
+                </div>
+                <div class="action-bar">
+                    <div class="status-badge" id="monitor-status">Inactive</div>
+                    <button class="btn btn-primary" id="btn-toggle-monitor">Start Monitor</button>
+                </div>
+            </header>
+            
+            <div class="dashboard-grid">
+                <!-- Main Chart -->
+                <div class="panel col-span-full">
+                    <div class="panel-header">
+                        <h2>Traffic Throughput (Packets/sec)</h2>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:300px; width:100%">
+                        <canvas id="trafficChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stat-card">
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                    <div class="stat-info">
+                        <h3>Packets Sent (Total)</h3>
+                        <div class="stat-value" id="pm-total-sent">0</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                    <div class="stat-info">
+                        <h3>Packets Recv (Total)</h3>
+                        <div class="stat-value" id="pm-total-recv">0</div>
+                    </div>
+                </div>
+                
+                <!-- Alerts / Top IPs -->
+                <div class="panel col-span-full">
+                    <div class="panel-header">
+                        <h2>Top Connections & Alerts</h2>
+                    </div>
+                    <div id="monitor-alerts">
+                        <div class="text-muted p-4">Start the monitor to see live connections.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Overlay for viewing details/exporting -->
+    <div class="modal-overlay" id="json-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Raw JSON Data</h3>
+                <button class="icon-button" onclick="app.closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <pre><code id="modal-content" class="language-json"></code></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="components.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
