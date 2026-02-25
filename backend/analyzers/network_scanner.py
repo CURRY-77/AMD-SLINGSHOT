@@ -8,6 +8,8 @@ import subprocess
 import re
 import platform
 import ipaddress
+import shutil
+import xml.etree.ElementTree as ET
 import concurrent.futures
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
@@ -62,7 +64,7 @@ def scan_network() -> Dict[str, Any]:
         return _error_response("Could not determine local network configuration. Make sure you are connected to a network.")
 
     # Step 2: Discover devices
-    devices_raw = _discover_devices(local_info["gateway"])
+    devices_raw = _discover_devices(local_info["gateway"], local_info["subnet"])
 
     # Always include local machine
     local_entry = {
@@ -192,26 +194,62 @@ def _get_interface_name() -> str:
 
 # ── Device Discovery ──────────────────────────────────────────
 
-def _discover_devices(gateway: str) -> List[Dict[str, Any]]:
-    """Discover devices on the local network using ARP table."""
-    devices = []
+def _discover_devices(gateway: str, subnet: str) -> List[Dict[str, Any]]:
+    """Discover devices on the local network using every method available.
 
+    Combines results from nmap, broadcast ping, ip neigh, arp table,
+    and individual ping sweep for maximum coverage.
+    """
+    devices: List[Dict[str, Any]] = []
+
+    # Step 1: Run nmap and broadcast ping concurrently for speed
+    nmap_available = shutil.which("nmap") is not None
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+        futures = []
+        if nmap_available:
+            # Run both ARP-based and TCP-based nmap scans in parallel
+            futures.append(pool.submit(_nmap_discover, subnet, False))  # standard (ARP on LAN)
+            futures.append(pool.submit(_nmap_discover, subnet, True))   # --send-ip (TCP probes)
+        # Broadcast ping in parallel
+        try:
+            gateway_base = ".".join(gateway.split(".")[:3])
+            broadcast_addr = f"{gateway_base}.255"
+            futures.append(pool.submit(_broadcast_ping, broadcast_addr))
+        except Exception:
+            pass
+
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                result = future.result()
+                if isinstance(result, list):
+                    devices.extend(result)
+            except Exception:
+                pass
+
+    # Step 2: Parse ip neigh show (Linux – more reliable than arp -a)
     try:
-        # Method 1: Parse ARP table
+        neigh_devices = _parse_ip_neigh()
+        devices.extend(neigh_devices)
+    except Exception:
+        pass
+
+    # Step 3: Parse ARP table (fallback / cross-platform)
+    try:
         result = subprocess.run(
             ["arp", "-a"],
             capture_output=True, text=True, timeout=10
         )
-
         for line in result.stdout.splitlines():
             parsed = _parse_arp_line(line)
             if parsed:
                 devices.append(parsed)
-
     except Exception:
         pass
 
-    # Method 2: Ping sweep the full subnet for thorough discovery
+    # Step 4: Deduplicate by IP, keeping entries with the most info
+    devices = _merge_device_lists(devices)
+
+    # Step 5: Ping sweep for any remaining IPs not yet found
     try:
         gateway_base = ".".join(gateway.split(".")[:3])
         _ping_sweep(gateway_base, devices)
@@ -219,6 +257,143 @@ def _discover_devices(gateway: str) -> List[Dict[str, Any]]:
         pass
 
     return devices
+
+
+def _nmap_discover(subnet: str, send_ip: bool = False) -> List[Dict[str, Any]]:
+    """Use nmap -sn to discover hosts on the subnet.
+
+    Runs nmap with XML output for reliable parsing.
+    - send_ip=False: standard scan (ARP-based on local networks, most reliable)
+    - send_ip=True:  uses --send-ip (TCP-based probes, catches devices that
+                     block ARP but respond to TCP)
+    Uses -T4 for aggressive timing to speed up the scan.
+    """
+    devices = []
+    try:
+        cmd = ["nmap", "-sn", "-T4", "-oX", "-", subnet]
+        if send_ip:
+            cmd.insert(2, "--send-ip")
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode != 0 and not result.stdout:
+            return devices
+
+        root = ET.fromstring(result.stdout)
+        for host_el in root.findall("host"):
+            status = host_el.find("status")
+            if status is None or status.get("state") != "up":
+                continue
+
+            ip = "Unknown"
+            mac = "Unknown"
+            hostname = "Unknown"
+
+            for addr in host_el.findall("address"):
+                if addr.get("addrtype") == "ipv4":
+                    ip = addr.get("addr", "Unknown")
+                elif addr.get("addrtype") == "mac":
+                    mac = addr.get("addr", "Unknown")
+
+            hostnames_el = host_el.find("hostnames")
+            if hostnames_el is not None:
+                hn = hostnames_el.find("hostname")
+                if hn is not None:
+                    hostname = hn.get("name", "Unknown")
+
+            if ip == "Unknown":
+                continue
+
+            if hostname == "Unknown":
+                hostname = _get_hostname(ip)
+
+            devices.append({
+                "ip": ip,
+                "mac": mac,
+                "hostname": hostname,
+                "is_local": False,
+            })
+    except Exception:
+        pass
+    return devices
+
+
+def _broadcast_ping(broadcast_addr: str) -> None:
+    """Send a broadcast ping to populate the ARP / neighbor table.
+
+    Even if no ICMP replies come back, the kernel sends ARP requests
+    to every host on the subnet, and any host that is alive will
+    respond to the ARP request, populating the neighbor table.
+    """
+    try:
+        if platform.system() == "Windows":
+            return  # Windows doesn't support broadcast ping easily
+        subprocess.run(
+            ["ping", "-b", "-c", "3", "-W", "2", broadcast_addr],
+            capture_output=True, text=True, timeout=10,
+        )
+    except Exception:
+        pass
+
+
+def _parse_ip_neigh() -> List[Dict[str, Any]]:
+    """Parse `ip neigh show` output on Linux for discovered neighbours."""
+    devices = []
+    try:
+        result = subprocess.run(
+            ["ip", "neigh", "show"],
+            capture_output=True, text=True, timeout=10,
+        )
+        for line in result.stdout.splitlines():
+            # Format: 192.168.15.5 dev wlan0 lladdr 76:e6:51:df:e8:91 STALE
+            #         192.168.15.1 dev wlan0 FAILED
+            parts = line.split()
+            if len(parts) < 4:
+                continue
+            ip = parts[0]
+            # Validate it looks like an IPv4 address
+            if not re.match(r'^\d+\.\d+\.\d+\.\d+$', ip):
+                continue
+            # Skip entries with no valid MAC (FAILED / INCOMPLETE)
+            state = parts[-1].upper()
+            if state in ("FAILED", "INCOMPLETE"):
+                continue
+            # Extract MAC address (after "lladdr")
+            mac = "Unknown"
+            if "lladdr" in parts:
+                idx = parts.index("lladdr")
+                if idx + 1 < len(parts):
+                    mac = parts[idx + 1]
+            hostname = _get_hostname(ip)
+            devices.append({
+                "ip": ip,
+                "mac": mac,
+                "hostname": hostname,
+                "is_local": False,
+            })
+    except Exception:
+        pass
+    return devices
+
+
+def _merge_device_lists(devices: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Deduplicate devices by IP, keeping entries with the most info."""
+    merged: Dict[str, Dict[str, Any]] = {}
+    for d in devices:
+        ip = d["ip"]
+        if ip not in merged:
+            merged[ip] = d
+        else:
+            existing = merged[ip]
+            # Prefer entry with a known MAC
+            if existing.get("mac", "Unknown") == "Unknown" and d.get("mac", "Unknown") != "Unknown":
+                existing["mac"] = d["mac"]
+            # Prefer entry with a known hostname
+            if existing.get("hostname", "Unknown") == "Unknown" and d.get("hostname", "Unknown") != "Unknown":
+                existing["hostname"] = d["hostname"]
+    return list(merged.values())
 
 
 def _parse_arp_line(line: str) -> Optional[Dict[str, Any]]:
