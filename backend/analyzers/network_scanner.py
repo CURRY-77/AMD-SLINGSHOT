@@ -211,13 +211,12 @@ def _discover_devices(gateway: str) -> List[Dict[str, Any]]:
     except Exception:
         pass
 
-    # Method 2: Ping sweep for additional discovery (quick)
-    if len(devices) < 3:
-        try:
-            gateway_base = ".".join(gateway.split(".")[:3])
-            _ping_sweep(gateway_base, devices)
-        except Exception:
-            pass
+    # Method 2: Ping sweep the full subnet for thorough discovery
+    try:
+        gateway_base = ".".join(gateway.split(".")[:3])
+        _ping_sweep(gateway_base, devices)
+    except Exception:
+        pass
 
     return devices
 
@@ -265,7 +264,7 @@ def _get_hostname(ip: str) -> str:
 def _ping_sweep(base_ip: str, existing_devices: List[Dict]) -> None:
     """Quick ping sweep to discover additional devices."""
     known_ips = {d["ip"] for d in existing_devices}
-    targets = [f"{base_ip}.{i}" for i in range(1, 20) if f"{base_ip}.{i}" not in known_ips]
+    targets = [f"{base_ip}.{i}" for i in range(1, 255) if f"{base_ip}.{i}" not in known_ips]
 
     def ping_one(ip):
         try:
@@ -280,7 +279,7 @@ def _ping_sweep(base_ip: str, existing_devices: List[Dict]) -> None:
             pass
         return None
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as pool:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=50) as pool:
         results = pool.map(ping_one, targets)
         for r in results:
             if r:

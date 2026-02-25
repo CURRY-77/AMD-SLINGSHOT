@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini Kalpana - AI Cyber Guardian</title>
-    
+
     <!-- Fonts: Inter for UI, JetBrains Mono for Code/Terminals -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="styles.css">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/styles.css?v=2">
+
     <!-- Chart.js for Packet Monitor -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body class="theme-light">
 
     <!-- Sidebar Navigation -->
@@ -22,7 +26,7 @@
         <div class="brand">
             <div class="logo">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                 </svg>
             </div>
             <h2>Kalpana</h2>
@@ -30,31 +34,53 @@
 
         <nav class="nav-menu">
             <a href="#dashboard" class="nav-item active" data-view="dashboard">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                </svg>
                 Dashboard
             </a>
-            
+
             <div class="nav-section">Analyzers</div>
             <a href="#url-scanner" class="nav-item" data-view="url-scanner">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
                 URL Scanner
             </a>
             <a href="#email-scanner" class="nav-item" data-view="email-scanner">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                    <polyline points="22,6 12,13 2,6" />
+                </svg>
                 Email Scanner
             </a>
             <a href="#file-analyzer" class="nav-item" data-view="file-analyzer">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                    <polyline points="13 2 13 9 20 9" />
+                </svg>
                 File Analyzer
             </a>
 
             <div class="nav-section">Monitoring</div>
             <a href="#network-map" class="nav-item" data-view="network-map">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
                 Network Map
             </a>
             <a href="#packet-monitor" class="nav-item" data-view="packet-monitor">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
                 Packet Monitor
             </a>
         </nav>
@@ -62,10 +88,19 @@
         <div class="sidebar-footer">
             <button id="theme-toggle" class="icon-button" title="Toggle Theme">
                 <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                 </svg>
-                <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="display: none;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
             </button>
             <div class="status-indicator online">System Online</div>
@@ -82,32 +117,48 @@
                     <p class="subtitle">System overview and recent activity</p>
                 </div>
             </header>
-            
+
             <div class="dashboard-grid">
                 <!-- Stats Cards -->
                 <div class="stat-card">
-                    <div class="stat-icon url-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+                    <div class="stat-icon url-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path
+                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg></div>
                     <div class="stat-info">
                         <h3>URLs Scanned</h3>
                         <div class="stat-value" id="dashboard-url-count">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon email-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+                    <div class="stat-icon email-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                            <polyline points="22,6 12,13 2,6" />
+                        </svg></div>
                     <div class="stat-info">
                         <h3>Emails Checked</h3>
                         <div class="stat-value" id="dashboard-email-count">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div>
+                    <div class="stat-icon file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+                            <polyline points="13 2 13 9 20 9" />
+                        </svg></div>
                     <div class="stat-info">
                         <h3>Files Analyzed</h3>
                         <div class="stat-value" id="dashboard-file-count">0</div>
                     </div>
                 </div>
                 <div class="stat-card alert">
-                    <div class="stat-icon alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+                    <div class="stat-icon alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path
+                                d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg></div>
                     <div class="stat-info">
                         <h3>Threats Found</h3>
                         <div class="stat-value" id="dashboard-threat-count">0</div>
@@ -132,7 +183,9 @@
                                 </tr>
                             </thead>
                             <tbody id="dashboard-history-list">
-                                <tr><td colspan="5" class="text-center text-muted">Loading history...</td></tr>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Loading history...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -148,7 +201,7 @@
                     <p class="subtitle">Analyze links for phishing, malware, and reputation</p>
                 </div>
             </header>
-            
+
             <div class="panel upload-panel">
                 <form id="form-url-scan" class="input-group">
                     <input type="url" id="input-url" placeholder="https://example.com" required class="input-lg">
@@ -174,7 +227,7 @@
                     <p class="subtitle">Analyze email content and headers for scams/phishing</p>
                 </div>
             </header>
-            
+
             <div class="panel">
                 <form id="form-email-scan" class="form-stack">
                     <div class="form-group">
@@ -183,11 +236,13 @@
                     </div>
                     <div class="form-group">
                         <label>Email Subject (Optional)</label>
-                        <input type="text" id="input-email-subject" placeholder="URGENT: Your account has been suspended">
+                        <input type="text" id="input-email-subject"
+                            placeholder="URGENT: Your account has been suspended">
                     </div>
                     <div class="form-group">
                         <label>Email Body / Content</label>
-                        <textarea id="input-email-body" rows="6" placeholder="Paste the suspicious email contents here..." required></textarea>
+                        <textarea id="input-email-body" rows="6"
+                            placeholder="Paste the suspicious email contents here..." required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary" id="btn-scan-email">Analyze Email</button>
                 </form>
@@ -202,14 +257,19 @@
                     <p class="subtitle">Extract metadata, hashes, and match against VirusTotal</p>
                 </div>
             </header>
-            
+
             <div class="panel upload-panel file-dropzone" id="file-dropzone">
                 <div class="dropzone-content">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="upload-icon">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
                     <h3>Drag & Drop file here</h3>
                     <p class="text-muted">or click to select file</p>
                     <input type="file" id="input-file" class="file-input-hidden">
-                    <button class="btn btn-secondary mt-4" onclick="document.getElementById('input-file').click()">Select File</button>
+                    <button class="btn btn-secondary mt-4"
+                        onclick="document.getElementById('input-file').click()">Select File</button>
                 </div>
                 <!-- Selection display -->
                 <div id="file-selection-display" class="hidden pb-4">
@@ -231,7 +291,7 @@
                 </div>
                 <button class="btn btn-primary" id="btn-scan-network">Run Full Scan</button>
             </header>
-            
+
             <!-- Network Loading -->
             <div id="network-loading" class="scan-loading hidden">
                 <div class="spinner"></div>
@@ -258,7 +318,7 @@
                     <button class="btn btn-primary" id="btn-toggle-monitor">Start Monitor</button>
                 </div>
             </header>
-            
+
             <div class="dashboard-grid">
                 <!-- Main Chart -->
                 <div class="panel col-span-full">
@@ -272,20 +332,24 @@
 
                 <!-- Stats Cards -->
                 <div class="stat-card">
-                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg></div>
                     <div class="stat-info">
                         <h3>Packets Sent (Total)</h3>
                         <div class="stat-value" id="pm-total-sent">0</div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                    <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg></div>
                     <div class="stat-info">
                         <h3>Packets Recv (Total)</h3>
                         <div class="stat-value" id="pm-total-recv">0</div>
                     </div>
                 </div>
-                
+
                 <!-- Alerts / Top IPs -->
                 <div class="panel col-span-full">
                     <div class="panel-header">
@@ -314,7 +378,8 @@
     </div>
 
     <!-- Scripts -->
-    <script src="components.js"></script>
-    <script src="app.js"></script>
+    <script src="/static/components.js?v=4"></script>
+    <script src="/static/app.js?v=5"></script>
 </body>
+
 </html>

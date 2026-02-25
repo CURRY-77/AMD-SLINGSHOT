@@ -28,7 +28,7 @@ const Components = {
         // 1. Top Summary Card
         const summaryCard = document.createElement('div');
         summaryCard.className = `panel risk-summary ${this.getRiskColorClass(data.risk_level)}`;
-        
+
         summaryCard.innerHTML = `
             <div class="risk-header">
                 <div class="risk-icon">${this.getRiskIcon(data.risk_level)}</div>
@@ -58,15 +58,15 @@ const Components = {
                     const subGrid = document.createElement('div');
                     subGrid.className = 'panel col-span-full';
                     subGrid.innerHTML = `<h3>${this.formatCheckName(key)}</h3>`;
-                    
+
                     const list = document.createElement('ul');
                     list.className = 'check-list';
-                    
+
                     for (const [subKey, subVal] of Object.entries(val)) {
                         const isFlagged = subVal === true || (typeof subVal === 'string' && subVal.toLowerCase() === 'high');
                         const statusClass = isFlagged ? 'text-critical text-strong' : 'text-safe';
                         const icon = isFlagged ? '❌' : '✅';
-                        
+
                         list.innerHTML += `
                             <li>
                                 <span>${icon} ${this.formatCheckName(subKey)}</span>
@@ -80,7 +80,7 @@ const Components = {
                     // Simple KPI Card
                     const card = document.createElement('div');
                     card.className = 'info-card panel';
-                    
+
                     let displayVal = val;
                     if (typeof val === 'boolean') {
                         displayVal = val ? '<span class="text-critical text-strong">Flags Detected</span>' : '<span class="text-safe">Clean</span>';
@@ -110,6 +110,10 @@ const Components = {
         const wrapper = document.createElement('div');
         wrapper.className = 'animate-fade-in';
 
+        // Normalize risk level from backend (uppercase) for display
+        const overallRisk = data.risk_level || 'Unknown';
+        const overallRiskUpper = overallRisk.toUpperCase();
+
         // Stats Header
         wrapper.innerHTML = `
             <div class="dashboard-grid mb-6">
@@ -122,13 +126,13 @@ const Components = {
                 <div class="stat-card">
                     <div class="stat-info">
                         <h3>Total Open Ports</h3>
-                        <div class="stat-value">${data.total_open_ports || 0}</div>
+                        <div class="stat-value">${data.open_ports_total || 0}</div>
                     </div>
                 </div>
-                <div class="stat-card ${data.highest_risk === 'High' ? 'alert text-critical' : ''}">
+                <div class="stat-card ${overallRiskUpper === 'HIGH' || overallRiskUpper === 'CRITICAL' ? 'alert text-critical' : ''}">
                     <div class="stat-info">
                         <h3>Highest Network Risk</h3>
-                        <div class="stat-value">${data.highest_risk || 'Unknown'}</div>
+                        <div class="stat-value">${overallRisk}</div>
                     </div>
                 </div>
             </div>
@@ -139,7 +143,76 @@ const Components = {
             return wrapper;
         }
 
-        // Devices Table
+        // ── Visual Network Topology Map ──
+        const topoPanel = document.createElement('div');
+        topoPanel.className = 'panel col-span-full mb-6';
+        topoPanel.innerHTML = `<div class="panel-header"><h2>Network Topology</h2></div>`;
+
+        const svgW = 700, svgH = 420;
+        const cx = svgW / 2, cy = svgH / 2;
+        const topoRadius = Math.min(svgW, svgH) * 0.34;
+
+        const riskColor = (level) => {
+            const l = (level || '').toUpperCase();
+            if (l === 'CRITICAL') return '#ef4444';
+            if (l === 'HIGH') return '#f97316';
+            if (l === 'MEDIUM') return '#eab308';
+            return '#22c55e';
+        };
+
+        const routerIcon = `<path d="M-8,-6 h16 a2,2 0 0 1 2,2 v8 a2,2 0 0 1 -2,2 h-16 a2,2 0 0 1 -2,-2 v-8 a2,2 0 0 1 2,-2 z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="-4" cy="0" r="1.5" fill="currentColor"/><circle cx="0" cy="0" r="1.5" fill="currentColor"/><circle cx="4" cy="0" r="1.5" fill="currentColor"/>`;
+        const pcIcon = `<rect x="-8" y="-7" width="16" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="-4" y1="4" x2="4" y2="4" stroke="currentColor" stroke-width="1.5"/><line x1="0" y1="4" x2="0" y2="7" stroke="currentColor" stroke-width="1.5"/><line x1="-5" y1="7" x2="5" y2="7" stroke="currentColor" stroke-width="1.5"/>`;
+
+        let svgContent = '';
+        const devices = data.devices;
+        const angleStep = (2 * Math.PI) / devices.length;
+
+        // Connection lines
+        devices.forEach((dev, i) => {
+            const angle = angleStep * i - Math.PI / 2;
+            const dx = cx + topoRadius * Math.cos(angle);
+            const dy = cy + topoRadius * Math.sin(angle);
+            const color = riskColor(dev.risk_level || dev.risk);
+            svgContent += `<line x1="${cx}" y1="${cy}" x2="${dx}" y2="${dy}" stroke="${color}" stroke-width="2" stroke-dasharray="6 3" opacity="0.5"><animate attributeName="stroke-dashoffset" from="0" to="-18" dur="2s" repeatCount="indefinite"/></line>`;
+        });
+
+        // Gateway node at center
+        const gwIp = data.network_info ? data.network_info.gateway : 'Gateway';
+        svgContent += `
+            <g transform="translate(${cx},${cy})" style="cursor:pointer">
+                <circle r="32" fill="#1e293b" stroke="#3b82f6" stroke-width="2.5"/>
+                <g transform="translate(0,-2)" style="color:#3b82f6">${routerIcon}</g>
+                <text y="18" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="Inter,sans-serif">${gwIp}</text>
+                <text y="-22" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600" font-family="Inter,sans-serif">Router</text>
+            </g>`;
+
+        // Device nodes
+        devices.forEach((dev, i) => {
+            const angle = angleStep * i - Math.PI / 2;
+            const dx = cx + topoRadius * Math.cos(angle);
+            const dy = cy + topoRadius * Math.sin(angle);
+            const color = riskColor(dev.risk_level || dev.risk);
+            const label = dev.device_type || dev.hostname || 'Device';
+            const shortLabel = label.length > 14 ? label.slice(0, 12) + '...' : label;
+            const portCount = dev.open_ports ? dev.open_ports.length : 0;
+
+            svgContent += `
+                <g transform="translate(${dx},${dy})" style="cursor:pointer">
+                    <circle r="28" fill="#1e293b" stroke="${color}" stroke-width="2"/>
+                    <g transform="translate(0,-4)" style="color:${color}">${pcIcon}</g>
+                    <text y="14" text-anchor="middle" fill="${color}" font-size="8" font-weight="600" font-family="Inter,sans-serif">${shortLabel}</text>
+                    <text y="23" text-anchor="middle" fill="#94a3b8" font-size="7" font-family="JetBrains Mono,monospace">${dev.ip}</text>
+                    ${portCount > 0 ? `<circle cx="18" cy="-18" r="8" fill="${color}"/><text x="18" y="-15" text-anchor="middle" fill="#fff" font-size="8" font-weight="700" font-family="Inter,sans-serif">${portCount}</text>` : ''}
+                </g>`;
+        });
+
+        const svgEl = document.createElement('div');
+        svgEl.style.cssText = 'display:flex;justify-content:center;padding:1.5rem 0;overflow-x:auto;';
+        svgEl.innerHTML = `<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" style="max-width:${svgW}px;max-height:${svgH}px;" xmlns="http://www.w3.org/2000/svg">${svgContent}</svg>`;
+        topoPanel.appendChild(svgEl);
+        wrapper.appendChild(topoPanel);
+
+        // ── Devices Table ──
         const tablePanel = document.createElement('div');
         tablePanel.className = 'panel col-span-full';
         tablePanel.innerHTML = `
@@ -150,36 +223,40 @@ const Components = {
                         <tr>
                             <th>IP Address</th>
                             <th>MAC Address</th>
-                            <th>Vendor</th>
+                            <th>Device</th>
                             <th>Open Ports</th>
                             <th>Status/Risk</th>
                         </tr>
                     </thead>
                     <tbody>
                         ${data.devices.map(dev => {
-                            const hasPorts = dev.open_ports && dev.open_ports.length > 0;
-                            const riskClass = dev.risk === 'High' ? 'badge-critical' : (dev.risk === 'Medium' ? 'badge-medium' : 'badge-safe');
-                            
-                            // Format ports
-                            let portHtml = '<span class="text-muted">None</span>';
-                            if (hasPorts) {
-                                portHtml = dev.open_ports.map(p => `
+            const hasPorts = dev.open_ports && dev.open_ports.length > 0;
+            const riskLevel = (dev.risk_level || dev.risk || 'LOW').toUpperCase();
+            const riskClass = riskLevel === 'HIGH' || riskLevel === 'CRITICAL' ? 'badge-critical' : (riskLevel === 'MEDIUM' ? 'badge-medium' : 'badge-safe');
+
+            // Use device_type + hostname for the "Device" column
+            const deviceLabel = dev.device_type || dev.hostname || dev.vendor || 'Unknown';
+
+            // Format ports
+            let portHtml = '<span class="text-muted">None</span>';
+            if (hasPorts) {
+                portHtml = dev.open_ports.map(p => `
                                     <div style="font-size: 0.8rem; margin-bottom: 2px;">
                                         <strong>${p.port}</strong> <span class="text-muted">(${p.service || 'unknown'})</span>
                                     </div>
                                 `).join('');
-                            }
+            }
 
-                            return `
+            return `
                                 <tr>
                                     <td class="text-strong">${dev.ip}</td>
-                                    <td class="code-font">${dev.mac}</td>
-                                    <td>${dev.vendor}</td>
+                                    <td class="code-font">${dev.mac || 'Unknown'}</td>
+                                    <td>${deviceLabel}${dev.hostname && dev.device_type ? ' <span class="text-muted">(' + dev.hostname + ')</span>' : ''}</td>
                                     <td>${portHtml}</td>
-                                    <td><span class="badge ${riskClass}">${dev.risk}</span></td>
+                                    <td><span class="badge ${riskClass}">${riskLevel}</span></td>
                                 </tr>
                             `;
-                        }).join('')}
+        }).join('')}
                     </tbody>
                 </table>
             </div>
@@ -192,8 +269,8 @@ const Components = {
     // --- Helpers ---
     formatCheckName(key) {
         return key.replace(/_/g, ' ')
-                  .replace(/([A-Z])/g, ' $1')
-                  .replace(/^./, str => str.toUpperCase())
-                  .trim();
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase())
+            .trim();
     }
 };
