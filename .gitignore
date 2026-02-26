@@ -27,3 +27,6 @@ Thumbs.db
 *.egg-info/
 dist/
 build/
+
+# Docs
+PRD.md
