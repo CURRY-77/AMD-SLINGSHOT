@@ -9,7 +9,7 @@ An AI-powered cybersecurity assistant built for students and academic institutio
 | **URL Scanner** | 10 heuristic checks – HTTPS, brand impersonation, homoglyphs, entropy, suspicious TLDs |
 | **Email/SMS Scanner** | 8 pattern-based checks – urgency keywords, financial manipulation, authority impersonation |
 | **File Analyzer** | 7 risk checks + VirusTotal hash lookup – extension analysis, MIME magic bytes, content patterns |
-| **Network Map** | ARP device discovery + 25-port TCP scan – risk-scored topology visualization |
+| **Network Map** | Multi-method device discovery (nmap, ARP, broadcast ping, TCP probes) + 25-port scan – risk-scored topology |
 | **Packet Monitor** | Real-time connection monitoring – live bandwidth chart, anomaly detection, security alerts |
 | **Dark/Light Mode** | Theme toggle with localStorage persistence |
 | **Persistent History** | SQLite database – all scan results stored permanently with export capability |
@@ -23,13 +23,18 @@ python -m venv venv
 source venv/bin/activate      # Linux / macOS
 # venv\Scripts\activate       # Windows
 
-# 2. Install dependencies
+# 2. Install nmap (required for full network scanning)
+sudo pacman -S nmap          # Arch
+# sudo apt install nmap      # Debian/Ubuntu
+# brew install nmap          # macOS
+
+# 3. Install Python dependencies
 pip install -r requirements.txt
 
-# 3. Start the server
+# 4. Start the server
 python main.py
 
-# 4. Open in browser
+# 5. Open in browser
 open http://localhost:8000
 ```
 
@@ -62,7 +67,7 @@ mini-kalpana/
 │   │   ├── url_analyzer.py     # URL phishing detection (10 checks)
 │   │   ├── email_analyzer.py   # Email/SMS scam detection (8 checks)
 │   │   ├── file_analyzer.py    # File malware analysis + VirusTotal
-│   │   ├── network_scanner.py  # ARP/TCP network discovery
+│   │   ├── network_scanner.py  # Multi-method network discovery (nmap + ARP + ping)
 │   │   └── packet_monitor.py   # Real-time connection monitoring
 │   └── engine/
 │       └── explainability.py   # Human-readable threat explanations
@@ -92,7 +97,7 @@ mini-kalpana/
 
 ## Tech Stack
 
-- **Backend**: Python, FastAPI, psutil, SQLite
+- **Backend**: Python, FastAPI, psutil, nmap, SQLite
 - **Frontend**: Vanilla HTML/CSS/JS, Chart.js
 - **Analysis**: Heuristic-based scoring, pattern matching, VirusTotal API
 
