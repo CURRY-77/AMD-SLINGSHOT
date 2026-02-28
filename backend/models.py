@@ -33,6 +33,7 @@ class URLFinding(BaseModel):
     check: str
     result: str
     risk_contribution: float = Field(0.0, ge=0, le=100)
+    vt_link: Optional[str] = None
 
 
 class URLScanResponse(BaseModel):

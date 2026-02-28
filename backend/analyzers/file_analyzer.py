@@ -300,8 +300,10 @@ def _check_hidden_extension(filename: str) -> tuple:
 
 def _check_virustotal(sha256: str) -> tuple:
     """Check file hash against VirusTotal database."""
+    vt_gui_link = f"https://www.virustotal.com/gui/file/{sha256}"
+
     if not VIRUSTOTAL_API_KEY:
-        return 0, {"check": "VirusTotal Lookup", "description": "VirusTotal API key not configured. Set VIRUSTOTAL_API_KEY environment variable for malware database lookups.", "risk_contribution": 0}
+        return 0, {"check": "VirusTotal Lookup", "result": "VirusTotal API key not configured. Set VIRUSTOTAL_API_KEY environment variable for malware database lookups.", "description": "VirusTotal API key not configured. Set VIRUSTOTAL_API_KEY environment variable for malware database lookups.", "risk_contribution": 0}
 
     try:
         url = f"https://www.virustotal.com/api/v3/files/{sha256}"
@@ -314,17 +316,23 @@ def _check_virustotal(sha256: str) -> tuple:
             total = sum(stats.values()) if stats else 0
 
             if malicious > 5:
-                return 40, {"check": "VirusTotal Lookup", "description": f"MALWARE DETECTED: {malicious}/{total} antivirus engines flagged this file as malicious.", "risk_contribution": 40}
+                msg = f"MALWARE DETECTED: {malicious}/{total} antivirus engines flagged this file as malicious."
+                return 40, {"check": "VirusTotal Lookup", "result": msg, "description": msg, "risk_contribution": 40, "vt_link": vt_gui_link}
             elif malicious > 0 or suspicious > 2:
-                return 20, {"check": "VirusTotal Lookup", "description": f"Suspicious: {malicious} malicious + {suspicious} suspicious detections out of {total} engines.", "risk_contribution": 20}
+                msg = f"Suspicious: {malicious} malicious + {suspicious} suspicious detections out of {total} engines."
+                return 20, {"check": "VirusTotal Lookup", "result": msg, "description": msg, "risk_contribution": 20, "vt_link": vt_gui_link}
             else:
-                return 0, {"check": "VirusTotal Lookup", "description": f"File is clean: 0/{total} engines detected any threat.", "risk_contribution": 0}
+                msg = f"File is clean: 0/{total} engines detected any threat."
+                return 0, {"check": "VirusTotal Lookup", "result": msg, "description": msg, "risk_contribution": 0, "vt_link": vt_gui_link}
     except urllib.error.HTTPError as e:
         if e.code == 404:
-            return 0, {"check": "VirusTotal Lookup", "description": "File hash not found in VirusTotal database (first submission).", "risk_contribution": 0}
-        return 0, {"check": "VirusTotal Lookup", "description": f"VirusTotal lookup failed (HTTP {e.code}).", "risk_contribution": 0}
+            msg = "File hash not found in VirusTotal database (first submission)."
+            return 0, {"check": "VirusTotal Lookup", "result": msg, "description": msg, "risk_contribution": 0, "vt_link": vt_gui_link}
+        msg = f"VirusTotal lookup failed (HTTP {e.code})."
+        return 0, {"check": "VirusTotal Lookup", "result": msg, "description": msg, "risk_contribution": 0}
     except Exception:
-        return 0, {"check": "VirusTotal Lookup", "description": "VirusTotal lookup timed out or failed.", "risk_contribution": 0}
+        msg = "VirusTotal lookup timed out or failed."
+        return 0, {"check": "VirusTotal Lookup", "result": msg, "description": msg, "risk_contribution": 0}
 
 
 # ── Utility ───────────────────────────────────────────────────

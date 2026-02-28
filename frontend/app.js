@@ -279,7 +279,7 @@ const app = {
             const response = await fetch(`${API_BASE}/scan/email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ body, sender, subject })
+                body: JSON.stringify({ content: body, sender, subject })
             });
             const data = await response.json();
 

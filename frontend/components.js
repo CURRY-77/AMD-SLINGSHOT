@@ -37,71 +37,142 @@ const Components = {
                     <p>${type.toUpperCase()} Scan Complete</p>
                 </div>
                 <div class="score-ring ml-auto hidden-sm">
-                    <span class="score-val">${data.risk_score || 0}<small>/100</small></span>
+                    <span class="score-val">${data.risk_score || data.scam_probability || 0}<small>/100</small></span>
                 </div>
             </div>
-            ${data.explanation ? `<div class="risk-explanation mt-4 p-4" style="background: rgba(0,0,0,0.1); border-radius: var(--radius-sm); border-left: 4px solid currentColor;">${data.explanation}</div>` : ''}
+            ${data.explanation ? `<div class="risk-explanation mt-4 p-4" style="background: rgba(0,0,0,0.1); border-radius: var(--radius-sm); border-left: 4px solid currentColor;">
+                <p>${data.explanation.what_happened || ''} ${data.explanation.what_it_means || ''}</p>
+                ${data.explanation.what_to_do && data.explanation.what_to_do.length ? `<p style="margin-top:0.5rem;font-weight:600;">Recommended actions:</p><ul style="margin:0.25rem 0 0 1.2rem">${data.explanation.what_to_do.map(a => `<li>${a}</li>`).join('')}</ul>` : ''}
+            </div>` : ''}
             ${data.recommendation ? `<p class="mt-4 text-strong">Recommended Action: ${data.recommendation}</p>` : ''}
         `;
 
         container.appendChild(summaryCard);
 
-        // 2. Details Grid
-        const grid = document.createElement('div');
-        grid.className = 'results-grid mt-6';
+        // 2. Findings Table (VirusTotal-style)
+        const findings = data.findings || [];
+        if (findings.length > 0) {
+            const findingsPanel = document.createElement('div');
+            findingsPanel.className = 'panel col-span-full mt-6';
 
+            // Count flagged vs clean
+            const flagged = findings.filter(f => (f.risk_contribution || 0) > 0).length;
+            const clean = findings.length - flagged;
+
+            findingsPanel.innerHTML = `
+                <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <h2>Security Analysis</h2>
+                    <span style="font-size:0.85rem;opacity:0.7;">
+                        ${flagged > 0
+                    ? `<span style="color:var(--color-critical,#ef4444);font-weight:600;">${flagged} flagged</span> / ${clean} clean`
+                    : `<span style="color:var(--color-safe,#22c55e);font-weight:600;">${clean} checks clean</span>`
+                }
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Check</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                                <th style="text-align:right;">Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${findings.map(f => {
+                    const risk = f.risk_contribution || 0;
+                    const detail = f.result || f.detail || f.description || '';
+                    const checkName = f.check || f.category || 'Check';
+
+                    let statusBadge, statusClass;
+                    if (risk >= 15) {
+                        statusBadge = 'Flagged';
+                        statusClass = 'badge-critical';
+                    } else if (risk >= 5) {
+                        statusBadge = 'Warning';
+                        statusClass = 'badge-medium';
+                    } else if (risk > 0) {
+                        statusBadge = 'Info';
+                        statusClass = 'badge-medium';
+                    } else {
+                        statusBadge = 'Clean';
+                        statusClass = 'badge-safe';
+                    }
+
+                    const checkLabel = f.vt_link
+                        ? `<a href="${f.vt_link}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px;">${checkName} ↗</a>`
+                        : checkName;
+
+                    return `<tr>
+                                    <td class="text-strong">${checkLabel}</td>
+                                    <td><span class="badge ${statusClass}">${statusBadge}</span></td>
+                                    <td style="font-size:0.85rem;max-width:400px;">${detail}</td>
+                                    <td style="text-align:right;font-weight:600;${risk > 0 ? 'color:var(--color-critical,#ef4444);' : 'color:var(--color-safe,#22c55e);'}">${risk > 0 ? '+' + risk : '0'}</td>
+                                </tr>`;
+                }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.appendChild(findingsPanel);
+        }
+
+        // 3. Domain Info Card (for URL scans)
+        if (data.domain_info) {
+            const infoPanel = document.createElement('div');
+            infoPanel.className = 'panel mt-6';
+            const di = data.domain_info;
+            infoPanel.innerHTML = `
+                <div class="panel-header"><h2>Domain Information</h2></div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;padding:0.5rem 0;">
+                    ${di.registered_domain ? `<div><div class="label">Registered Domain</div><div class="value text-strong">${di.registered_domain}</div></div>` : ''}
+                    ${di.subdomain ? `<div><div class="label">Subdomain</div><div class="value">${di.subdomain}</div></div>` : ''}
+                    ${di.tld ? `<div><div class="label">TLD</div><div class="value">.${di.tld}</div></div>` : ''}
+                    ${di.scheme ? `<div><div class="label">Protocol</div><div class="value">${di.scheme.toUpperCase()}</div></div>` : ''}
+                    ${di.path && di.path !== '/' ? `<div><div class="label">Path</div><div class="value code-font" style="font-size:0.8rem;word-break:break-all;">${di.path}</div></div>` : ''}
+                </div>
+            `;
+            container.appendChild(infoPanel);
+        }
+
+        // 4. Legacy Details Grid (for any scan type that uses data.details)
         if (data.details) {
-            // Loop through detail checks and create cards
+            const grid = document.createElement('div');
+            grid.className = 'results-grid mt-6';
             for (const [key, val] of Object.entries(data.details)) {
                 if (typeof val === 'object' && val !== null) {
-                    // Extract heuristics or deeper objects
                     const subGrid = document.createElement('div');
                     subGrid.className = 'panel col-span-full';
                     subGrid.innerHTML = `<h3>${this.formatCheckName(key)}</h3>`;
-
                     const list = document.createElement('ul');
                     list.className = 'check-list';
-
                     for (const [subKey, subVal] of Object.entries(val)) {
                         const isFlagged = subVal === true || (typeof subVal === 'string' && subVal.toLowerCase() === 'high');
                         const statusClass = isFlagged ? 'text-critical text-strong' : 'text-safe';
                         const icon = isFlagged ? '❌' : '✅';
-
-                        list.innerHTML += `
-                            <li>
-                                <span>${icon} ${this.formatCheckName(subKey)}</span>
-                                <span class="${statusClass}">${subVal}</span>
-                            </li>
-                        `;
+                        list.innerHTML += `<li><span>${icon} ${this.formatCheckName(subKey)}</span><span class="${statusClass}">${subVal}</span></li>`;
                     }
                     subGrid.appendChild(list);
                     grid.appendChild(subGrid);
                 } else {
-                    // Simple KPI Card
                     const card = document.createElement('div');
                     card.className = 'info-card panel';
-
                     let displayVal = val;
                     if (typeof val === 'boolean') {
                         displayVal = val ? '<span class="text-critical text-strong">Flags Detected</span>' : '<span class="text-safe">Clean</span>';
                     }
-
-                    // Format large text blocks (like email body excerpts)
                     if (typeof val === 'string' && val.length > 50) {
                         card.classList.add('col-span-full');
                         displayVal = `<div class="code-block">${val}</div>`;
                     }
-
-                    card.innerHTML = `
-                        <div class="label">${this.formatCheckName(key)}</div>
-                        <div class="value">${displayVal}</div>
-                    `;
+                    card.innerHTML = `<div class="label">${this.formatCheckName(key)}</div><div class="value">${displayVal}</div>`;
                     grid.appendChild(card);
                 }
             }
+            container.appendChild(grid);
         }
 
-        container.appendChild(grid);
         return container;
     },
 
